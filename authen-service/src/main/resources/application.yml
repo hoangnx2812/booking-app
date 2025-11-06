@@ -3,13 +3,11 @@ spring:
     name: authentication-service
   datasource:
     driver-class-name: org.postgresql.Driver
-    url: jdbc:postgresql://localhost:5432/booking-web
+    url: jdbc:postgresql://localhost:5432/bka
     username: root
     password: root
   jpa:
     show-sql: true
-    hibernate:
-      ddl-auto: update
     properties:
       hibernate:
         format_sql: true

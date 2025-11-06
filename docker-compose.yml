@@ -46,7 +46,7 @@ services:
     image: postgis/postgis:15-3.4
     container_name: postgres-be-db
     environment:
-      POSTGRES_DB: booking-web
+      POSTGRES_DB: bka
       POSTGRES_USER: root
       POSTGRES_PASSWORD: root
       TZ: Asia/Ho_Chi_Minh
