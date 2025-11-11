@@ -1,5 +1,6 @@
 package com.example.authenservice.entity;
 
+import com.example.commericalcommon.utils.Constant;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -53,5 +54,14 @@ public class UserAuth {
 
     @Column(name = "status", length = Integer.MAX_VALUE)
     String status;
+
+    @Column(name = "keycloak_id", length = Integer.MAX_VALUE)
+    String keycloakId;
+
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
+        status = Constant.Status.ACTIVE;
+    }
 
 }

@@ -1,5 +1,6 @@
 package com.example.authenservice.entity;
 
+import com.example.commericalcommon.utils.Constant;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -18,6 +19,7 @@ import java.time.LocalDateTime;
 @Table(name = "user_info")
 public class UserInfo {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
     Long id;
 
@@ -95,27 +97,27 @@ public class UserInfo {
     @NotNull
     @ColumnDefault("true")
     @Column(name = "enable_notification", nullable = false)
-    Boolean enableNotification = false;
+    Boolean enableNotification;
 
     @NotNull
     @ColumnDefault("false")
     @Column(name = "enable_email_notification", nullable = false)
-    Boolean enableEmailNotification = false;
+    Boolean enableEmailNotification;
 
     @NotNull
     @ColumnDefault("false")
     @Column(name = "enable_sms", nullable = false)
-    Boolean enableSms = false;
+    Boolean enableSms;
 
     @NotNull
     @ColumnDefault("true")
     @Column(name = "enable_promotions_notification", nullable = false)
-    Boolean enablePromotionsNotification = false;
+    Boolean enablePromotionsNotification;
 
     @NotNull
     @ColumnDefault("true")
     @Column(name = "enable_promotions_email_notification", nullable = false)
-    Boolean enablePromotionsEmailNotification = false;
+    Boolean enablePromotionsEmailNotification;
 
     @NotNull
     @ColumnDefault("'vi'")
@@ -127,6 +129,23 @@ public class UserInfo {
 
     @Column(name = "longitude")
     Double longitude;
+
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
+        status = Constant.Status.ACTIVE;
+        enableNotification = Boolean.TRUE;
+        enableEmailNotification = Boolean.FALSE;
+        enableSms = Boolean.FALSE;
+        enablePromotionsNotification = Boolean.TRUE;
+        enablePromotionsEmailNotification = Boolean.TRUE;
+        language =  Constant.Language.VIETNAMESE;
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        updatedAt = LocalDateTime.now();
+    }
 
 /*
  TODO [Reverse Engineering] create field to map the 'location' column
