@@ -1,8 +1,9 @@
 package com.example.authenservice.entity;
 
+import com.example.commericalcommon.utils.Constant;
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import jakarta.validation.constraints.Size;
+import lombok.*;
 import lombok.experimental.FieldDefaults;
 import org.hibernate.annotations.ColumnDefault;
 
@@ -13,21 +14,24 @@ import java.time.LocalDateTime;
 @FieldDefaults(level = lombok.AccessLevel.PRIVATE)
 @Entity
 @Table(name = "role")
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class Role {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "role_id", nullable = false)
     Long id;
 
-    @jakarta.validation.constraints.Size(max = 255)
+    @Size(max = 255)
     @Column(name = "description")
     String description;
 
-    @jakarta.validation.constraints.Size(max = 255)
+    @Size(max = 255)
     @Column(name = "name")
     String name;
 
-    @jakarta.validation.constraints.Size(max = 255)
+    @Size(max = 255)
     @Column(name = "status")
     String status;
 
@@ -38,4 +42,9 @@ public class Role {
     @Column(name = "updated_at")
     LocalDateTime updatedAt;
 
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
+        status = Constant.Status.ACTIVE;
+    }
 }

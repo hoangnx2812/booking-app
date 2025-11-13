@@ -3,7 +3,7 @@ package com.example.authenservice.controller;
 import com.example.authenservice.dto.request.LoginUserRequest;
 import com.example.authenservice.dto.request.RegisterUserRequest;
 import com.example.authenservice.dto.response.LoginUserResponse;
-import com.example.authenservice.service.UserAuthService;
+import com.example.authenservice.service.AuthenticationService;
 import com.example.commericalcommon.dto.BaseRequest;
 import com.example.commericalcommon.dto.BaseResponse;
 import com.example.commericalcommon.dto.request.IdRequest;
@@ -15,18 +15,18 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/users")
+@RequestMapping("/auth")
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 @Slf4j
-public class UserAuthController {
-    UserAuthService userAuthService;
+public class AuthenticationController {
+    AuthenticationService authenticationService;
     MessageUtil messageUtil;
 
     @PostMapping("/login")
     public BaseResponse<LoginUserResponse> login(@RequestBody BaseRequest<LoginUserRequest> request) {
         long startTime = System.currentTimeMillis();
-        LoginUserResponse response = userAuthService.loginUser(request.getData());
+        LoginUserResponse response = authenticationService.loginUser(request.getData());
         return BaseResponse.<LoginUserResponse>builder()
                 .requestId(request.getRequestId())
                 .requestTime(request.getClientRequestId())
@@ -39,7 +39,7 @@ public class UserAuthController {
     @PostMapping("/register")
     public BaseResponse<Void> register(@RequestBody BaseRequest<RegisterUserRequest> request) {
         long startTime = System.currentTimeMillis();
-        userAuthService.registerUser(request.getData());
+        authenticationService.registerUser(request.getData());
         return BaseResponse.<Void>builder()
                 .requestId(request.getRequestId())
                 .requestTime(request.getClientRequestId())
@@ -51,7 +51,7 @@ public class UserAuthController {
     @DeleteMapping("/delete")
     public BaseResponse<Void> delete(@RequestBody BaseRequest<IdRequest> request) {
         long startTime = System.currentTimeMillis();
-        userAuthService.deleteUser(request.getData());
+        authenticationService.deleteUser(request.getData());
         return BaseResponse.<Void>builder()
                 .requestId(request.getRequestId())
                 .requestId(request.getRequestId())

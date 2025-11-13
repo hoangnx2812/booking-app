@@ -15,8 +15,8 @@ import org.springframework.context.annotation.Configuration;
 public class KeycloakProperties {
     String realm;
     String domain;
-    String adminClientId;
-    String adminClientSecret;
+    String clientId;
+    String clientSecret;
     String urls;
     Admin admin;
 

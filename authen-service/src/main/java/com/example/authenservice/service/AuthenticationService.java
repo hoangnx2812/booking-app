@@ -7,7 +7,7 @@ import com.example.authenservice.dto.request.UserInfoResponse;
 import com.example.authenservice.dto.response.LoginUserResponse;
 import com.example.commericalcommon.dto.request.IdRequest;
 
-public interface UserAuthService {
+public interface AuthenticationService {
 
     Object registerUser(RegisterUserRequest request);
 

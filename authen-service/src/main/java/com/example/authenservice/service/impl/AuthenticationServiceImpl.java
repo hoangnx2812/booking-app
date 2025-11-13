@@ -10,13 +10,14 @@ import com.example.authenservice.entity.UserAuth;
 import com.example.authenservice.entity.UserInfo;
 import com.example.authenservice.repository.UserAuthRepository;
 import com.example.authenservice.repository.UserInfoRepository;
-import com.example.authenservice.service.UserAuthService;
+import com.example.authenservice.service.AuthenticationService;
 import com.example.commericalcommon.dto.request.IdRequest;
 import com.example.commericalcommon.exception.AppException;
 import com.example.commericalcommon.exception.ErrorCode;
+import com.example.commericalcommon.utils.AuthorityConstant;
+import com.example.commericalcommon.utils.Constant;
 import jakarta.ws.rs.core.Response;
 import lombok.AccessLevel;
-import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.keycloak.OAuth2Constants;
@@ -27,36 +28,50 @@ import org.keycloak.representations.AccessTokenResponse;
 import org.keycloak.representations.idm.CredentialRepresentation;
 import org.keycloak.representations.idm.RoleRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collections;
 
 import static com.example.commericalcommon.utils.Constant.PrefixNo.USER_NO;
-import static com.example.commericalcommon.utils.Util.generateNo;
-import static com.example.commericalcommon.utils.Util.generateSalt;
+import static com.example.commericalcommon.utils.Util.*;
 
 
 @Service
-@RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 @Slf4j
-public class UserAuthServiceImpl implements UserAuthService {
+public class AuthenticationServiceImpl implements AuthenticationService {
     KeycloakProperties keycloakProperties;
     UserAuthRepository userAuthRepository;
-    PasswordEncoder passwordEncoder;
     UserInfoRepository userInfoRepository;
+    Keycloak adminKeycloak;
+    Keycloak appKeycloak;
+
+    public AuthenticationServiceImpl(KeycloakProperties keycloakProperties,
+                                     UserAuthRepository userAuthRepository,
+                                     UserInfoRepository userInfoRepository,
+                                     @Qualifier("adminKeycloak")
+                                     Keycloak adminKeycloak,
+                                     @Qualifier("appKeycloak")
+                                     Keycloak appKeycloak) {
+        this.keycloakProperties = keycloakProperties;
+        this.userAuthRepository = userAuthRepository;
+        this.userInfoRepository = userInfoRepository;
+        this.adminKeycloak = adminKeycloak;
+        this.appKeycloak = appKeycloak;
+    }
 
     @Override
     @Transactional
     public Object registerUser(RegisterUserRequest request) {
+        String salt = generateSalt(null);
         UserAuth user = new UserAuth();
         user.setUserName(request.getUsername());
-        user.setUserPwdHash(passwordEncoder.encode(request.getPassword()));
-        user.setUserSalt(generateSalt(null));
+        user.setUserPwdHash(encryptSHA256(request.getPassword() + salt));
+        user.setUserSalt(salt);
         userAuthRepository.save(user);
 
         UserInfo userInfo = new UserInfo();
@@ -71,15 +86,6 @@ public class UserAuthServiceImpl implements UserAuthService {
         userInfo.setUserAuth(user);
         userInfoRepository.save(userInfo);
 
-        Keycloak keycloak = KeycloakBuilder.builder()
-                .serverUrl(keycloakProperties.getUrls())
-                .realm(keycloakProperties.getAdmin().getRealm())
-                .clientId(keycloakProperties.getAdmin().getClientId())
-                .username(keycloakProperties.getAdmin().getUsername())
-                .password(keycloakProperties.getAdmin().getPassword())
-                .build();
-
-
         UserRepresentation userRepresentation = new UserRepresentation();
         userRepresentation.setUsername(request.getUsername());
         userRepresentation.setEmail(request.getEmail());
@@ -89,7 +95,7 @@ public class UserAuthServiceImpl implements UserAuthService {
         userRepresentation.setEnabled(true);
         userRepresentation.setRequiredActions(Collections.emptyList());
 
-        Response response = keycloak.realm(keycloakProperties.getRealm())
+        Response response = adminKeycloak.realm(keycloakProperties.getRealm())
                 .users()
                 .create(userRepresentation);
 
@@ -107,20 +113,20 @@ public class UserAuthServiceImpl implements UserAuthService {
             credential.setTemporary(false);
             credential.setType(CredentialRepresentation.PASSWORD);
             credential.setValue(request.getPassword());
-            keycloak.realm(keycloakProperties.getRealm())
+            adminKeycloak.realm(keycloakProperties.getRealm())
                     .users()
                     .get(userId)
                     .resetPassword(credential);
 
-            //Them role mac dinh la general
-            UserResource userResource = keycloak
+            //Them role mac dinh la USER
+            UserResource userResource = adminKeycloak
                     .realm(keycloakProperties.getRealm())
                     .users()
                     .get(userId);
-            RoleRepresentation generalRole = keycloak
+            RoleRepresentation generalRole = adminKeycloak
                     .realm(keycloakProperties.getRealm())
                     .roles()
-                    .get("general")
+                    .get(Constant.DefaultRole.USER)
                     .toRepresentation();
             userResource.roles().realmLevel().add(Collections.singletonList(generalRole));
 
@@ -128,10 +134,8 @@ public class UserAuthServiceImpl implements UserAuthService {
         } else {
             String errorBody = response.readEntity(String.class);
             log.error("Failed to create user in Keycloak: {}", errorBody);
-            keycloak.close();
             throw new AppException(ErrorCode.INVALID_INPUT);
         }
-        keycloak.close();
         return "User registered successfully";
     }
 
@@ -142,17 +146,18 @@ public class UserAuthServiceImpl implements UserAuthService {
                 .findByUserName(request.getUsername())
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
 
-        boolean authenticated = passwordEncoder.matches(request.getPassword(), user.getUserPwdHash());
+        String hashedInputPassword = encryptSHA256(request.getPassword() + user.getUserSalt());
+        boolean authenticated = user.getUserPwdHash().equals(hashedInputPassword);
 
         if (!authenticated) throw new AppException(ErrorCode.UNAUTHENTICATED);
 
         try (Keycloak keycloak = KeycloakBuilder.builder()
                 .serverUrl(keycloakProperties.getUrls())
                 .realm(keycloakProperties.getRealm())
-                .clientId(keycloakProperties.getAdminClientId())
-                .clientSecret(keycloakProperties.getAdminClientSecret())
+                .clientId(keycloakProperties.getClientId())
+                .clientSecret(keycloakProperties.getClientSecret())
                 .username(request.getUsername())
-                .password(request.getPassword())
+                .password(hashedInputPassword)
                 .grantType(OAuth2Constants.PASSWORD)
                 .build()) {
 
@@ -187,7 +192,7 @@ public class UserAuthServiceImpl implements UserAuthService {
 
     @Override
     @Transactional
-    @PreAuthorize("hasRole('admin')")
+    @PreAuthorize(AuthorityConstant.DefaultRole.ADMIN)
     public Object deleteUser(IdRequest request) {
         UserInfo userInfo = userInfoRepository.findByUserAuthId(request.getId())
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));

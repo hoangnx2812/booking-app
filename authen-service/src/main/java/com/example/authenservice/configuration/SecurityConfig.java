@@ -5,15 +5,11 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -27,7 +23,15 @@ import org.springframework.web.filter.CorsFilter;
 public class SecurityConfig {
     String[] PUBLIC_ENDPOINTS = {
             "/users/register",
-            "/users/login"
+            "/users/login",
+            "/public/**",
+            "/v3/api-docs/**",
+            "/configuration/**",
+            "/swagger-ui/**",
+            "/swagger-resources/**",
+            "/swagger-ui.html",
+            "/webjars/**",
+            "/api-docs/**"
     };
     JwtAuthConverter jwtAuthConverter;
 
@@ -49,7 +53,6 @@ public class SecurityConfig {
                 .build();
     }
 
-
     @Bean
     public CorsFilter corsFilter() {
         CorsConfiguration corsConfiguration = new CorsConfiguration();
@@ -62,41 +65,5 @@ public class SecurityConfig {
         urlBasedCorsConfigurationSource.registerCorsConfiguration("/**", corsConfiguration);
 
         return new CorsFilter(urlBasedCorsConfigurationSource);
-    }
-
-    @Bean
-    PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder(10);
-    }
-
-    @Bean
-    public WebSecurityCustomizer webSecurityCustomizer() {
-
-        return (web) -> {
-            web.ignoring().requestMatchers(
-                    HttpMethod.POST,
-                    "/public/**",
-                    "/users"
-            );
-            web.ignoring().requestMatchers(
-                    HttpMethod.GET,
-                    "/public/**"
-            );
-            web.ignoring().requestMatchers(
-                    HttpMethod.DELETE,
-                    "/public/**"
-            );
-            web.ignoring().requestMatchers(
-                    HttpMethod.PUT,
-                    "/public/**"
-            );
-            web.ignoring().requestMatchers(
-                            HttpMethod.OPTIONS,
-                            "/**"
-                    )
-                    .requestMatchers("/v3/api-docs/**", "/configuration/**", "/swagger-ui/**",
-                            "/swagger-resources/**", "/swagger-ui.html", "/webjars/**", "/api-docs/**");
-
-        };
     }
 }

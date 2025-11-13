@@ -5,5 +5,5 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 @ComponentScan(basePackages = "com.example.commericalcommon")
-public class CommonAutoConfiguration {
+public class CommonAutoConfig {
 }

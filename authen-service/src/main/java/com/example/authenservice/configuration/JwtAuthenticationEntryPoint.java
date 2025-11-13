@@ -13,7 +13,6 @@ import org.springframework.security.web.AuthenticationEntryPoint;
 import java.io.IOException;
 
 public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
-    private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Override
     public void commence(
@@ -29,7 +28,7 @@ public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
                 .resultDesc(errorCode.getMessage())
                 .build();
 
-        response.getWriter().write(objectMapper.writeValueAsString(baseResponse));
+        response.getWriter().write(new ObjectMapper().writeValueAsString(baseResponse));
         response.flushBuffer();
     }
 }

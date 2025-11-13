@@ -21,20 +21,26 @@ spring:
 jwt:
   auth:
     converter:
-      resource-id: ${keycloak.adminClientId}
+      resource-id: ${keycloak.clientId}
       principal-attribute: preferred_username
 
 keycloak:
   realm: bka
   domain: localhost:8090
-  adminClientId: bka_app
-  adminClientSecret: ${KEYCLOAK_SECRET_KEY:JBIlGc9mx1WeLTGqgbhDTYUfftJBkrlK}
+  clientId: bka_app
+  clientSecret: JBIlGc9mx1WeLTGqgbhDTYUfftJBkrlK
   admin:
     username: admin
     password: admin123
     realm: master
     clientId: admin-cli
   urls: http://${keycloak.domain}
+
+app:
+  admin:
+    account:
+      username: admin
+      password: Admin@12345
 
 server:
   port: 8080

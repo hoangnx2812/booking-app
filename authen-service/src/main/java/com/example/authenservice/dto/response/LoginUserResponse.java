@@ -6,6 +6,8 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.FieldDefaults;
 
+import java.util.Set;
+
 @Getter
 @Setter
 @Builder
@@ -13,4 +15,6 @@ import lombok.experimental.FieldDefaults;
 public class LoginUserResponse {
     String accessToken;
     String refreshToken;
+    Set<String> roles;
+    Set<String> permissions;
 }
