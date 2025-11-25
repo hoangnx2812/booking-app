@@ -1,4 +1,4 @@
-package com.example.authenservice.configuration;
+package com.example.postservice.configuration;
 
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -22,8 +22,6 @@ import org.springframework.web.filter.CorsFilter;
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class SecurityConfig {
     String[] PUBLIC_ENDPOINTS = {
-            "/auth/register",
-            "/auth/login",
             "/public/**",
             "/v3/api-docs/**",
             "/configuration/**",

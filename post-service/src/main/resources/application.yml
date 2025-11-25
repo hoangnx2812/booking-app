@@ -1,9 +1,9 @@
 spring:
   application:
-    name: authentication-service
+    name: post-service
   datasource:
     driver-class-name: org.postgresql.Driver
-    url: jdbc:postgresql://localhost:5432/authentication
+    url: jdbc:postgresql://localhost:5432/post
     username: root
     password: root
   jpa:
@@ -36,28 +36,10 @@ keycloak:
     clientId: admin-cli
   urls: http://${keycloak.domain}
 
-app:
-  admin:
-    account:
-      username: admin
-      password: Admin@12345
-
-server:
-  port: 8080
-  servlet:
-    context-path: /authentication
 
 logging:
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss.SSS} | %-5level | %X{traceId:-N/A} | %thread | %C{1}.%M:%L | %msg%n"
     file: '{"timestamp":"%d{yyyy-MM-dd''T''HH:mm:ss.SSSZ}","level":"%p","service":"${spring.application.name:-unknown}","env":"${spring.profiles.active:-local}","thread":"%t","class":"%C{1}.%M:%L","traceId":"%X{traceId:-}","spanId":"%X{spanId:-}","requestId":"%X{requestId:-}","message":"%replace(%msg){"\n"," "}"}'
   file:
-    name: logs/authentication_service.log
-
-springdoc:
-  api-docs:
-    path: /api-docs
-  swagger-ui:
-    path: /swagger-ui.html
-
-
+    name: logs/post_service.log

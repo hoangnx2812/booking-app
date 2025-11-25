@@ -2,7 +2,7 @@ package com.example.authenservice.configuration;
 
 import com.example.authenservice.entity.*;
 import com.example.authenservice.repository.*;
-import com.example.commericalcommon.exception.AppException;
+import com.example.commericalcommon.exception.GlobalException;
 import com.example.commericalcommon.exception.ErrorCode;
 import com.example.commericalcommon.utils.Constant;
 import com.example.commericalcommon.utils.PermissionConstant;
@@ -193,7 +193,7 @@ public class ApplicationInitConfig {
                 }
 
                 Role adminRole = roleRepository.findByName(Constant.DefaultRole.ADMIN)
-                        .orElseThrow(() -> new AppException(ErrorCode.ROLE_NOT_EXISTED));
+                        .orElseThrow(() -> new GlobalException(ErrorCode.ROLE_NOT_EXISTED));
 
                 List<Permission> allPermissionEntities = permissionRepository.findAll();
 
@@ -271,7 +271,7 @@ public class ApplicationInitConfig {
                 //Tao user role cho admin
                 UserRole userRole = new UserRole();
                 Role adminRole = roleRepository.findByName(Constant.DefaultRole.ADMIN)
-                        .orElseThrow(() -> new AppException(ErrorCode.ROLE_NOT_EXISTED));
+                        .orElseThrow(() -> new GlobalException(ErrorCode.ROLE_NOT_EXISTED));
                 UserRoleId userRoleId = new UserRoleId();
                 userRoleId.setRoleId(adminRole.getId());
                 userRoleId.setUserAuthId(user.getId());
@@ -290,46 +290,46 @@ public class ApplicationInitConfig {
                 userRepresentation.setEnabled(true);
                 userRepresentation.setRequiredActions(Collections.emptyList());
 
-                Response response = adminKeycloak.realm(keycloakProperties.getRealm())
+                try (Response response = adminKeycloak.realm(keycloakProperties.getRealm())
                         .users()
-                        .create(userRepresentation);
+                        .create(userRepresentation)) {
+                    if (HttpStatus.CREATED.value() == response.getStatus()) {
+                        String location = response.getLocation().toString();
+                        String userId = location.substring(location.lastIndexOf("/") + 1);
 
-                if (HttpStatus.CREATED.value() == response.getStatus()) {
-                    String location = response.getLocation().toString();
-                    String userId = location.substring(location.lastIndexOf("/") + 1);
+                        user.setUserInfoNo(userInfo.getUserNo());
+                        user.setUserInfoId(userInfo.getId());
+                        user.setKeycloakId(userId);
+                        userAuthRepository.save(user);
 
-                    user.setUserInfoNo(userInfo.getUserNo());
-                    user.setUserInfoId(userInfo.getId());
-                    user.setKeycloakId(userId);
-                    userAuthRepository.save(user);
+                        //Them pass
+                        CredentialRepresentation credential = new CredentialRepresentation();
+                        credential.setTemporary(false);
+                        credential.setType(CredentialRepresentation.PASSWORD);
+                        credential.setValue(hashedPwd);
+                        adminKeycloak.realm(keycloakProperties.getRealm())
+                                .users()
+                                .get(userId)
+                                .resetPassword(credential);
 
-                    //Them pass
-                    CredentialRepresentation credential = new CredentialRepresentation();
-                    credential.setTemporary(false);
-                    credential.setType(CredentialRepresentation.PASSWORD);
-                    credential.setValue(hashedPwd);
-                    adminKeycloak.realm(keycloakProperties.getRealm())
-                            .users()
-                            .get(userId)
-                            .resetPassword(credential);
+                        //Them role mac dinh la USER
+                        UserResource userResource = adminKeycloak
+                                .realm(keycloakProperties.getRealm())
+                                .users()
+                                .get(userId);
+                        RoleRepresentation generalRole = adminKeycloak
+                                .realm(keycloakProperties.getRealm())
+                                .roles()
+                                .get(Constant.DefaultRole.ADMIN)
+                                .toRepresentation();
+                        userResource.roles().realmLevel().add(Collections.singletonList(generalRole));
 
-                    //Them role mac dinh la USER
-                    UserResource userResource = adminKeycloak
-                            .realm(keycloakProperties.getRealm())
-                            .users()
-                            .get(userId);
-                    RoleRepresentation generalRole = adminKeycloak
-                            .realm(keycloakProperties.getRealm())
-                            .roles()
-                            .get(Constant.DefaultRole.ADMIN)
-                            .toRepresentation();
-                    userResource.roles().realmLevel().add(Collections.singletonList(generalRole));
-
-                    log.info("User created in Keycloak: {}", ADMIN_USER_NAME);
-                } else {
-                    String errorBody = response.readEntity(String.class);
-                    log.error("Failed to create user in Keycloak: {}", errorBody);
-                    throw new AppException(ErrorCode.INVALID_INPUT);
+                        log.info("User created in Keycloak: {}", ADMIN_USER_NAME);
+                    } else {
+                        String errorBody = response.readEntity(String.class);
+                        log.error("Failed to create user in Keycloak: {}", errorBody);
+                        throw new GlobalException(ErrorCode.INVALID_INPUT);
+                    }
                 }
             }
             log.info("Application initialization completed .....");

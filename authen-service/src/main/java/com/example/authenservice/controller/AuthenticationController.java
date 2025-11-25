@@ -2,17 +2,20 @@ package com.example.authenservice.controller;
 
 import com.example.authenservice.dto.request.LoginUserRequest;
 import com.example.authenservice.dto.request.RegisterUserRequest;
-import com.example.authenservice.dto.response.LoginUserResponse;
 import com.example.authenservice.service.AuthenticationService;
 import com.example.commericalcommon.dto.BaseRequest;
 import com.example.commericalcommon.dto.BaseResponse;
 import com.example.commericalcommon.dto.request.IdRequest;
+import com.example.commericalcommon.dto.request.IntrospectRequest;
+import com.example.commericalcommon.dto.response.IntrospectResponse;
 import com.example.commericalcommon.utils.MessageUtil;
+import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
+import reactor.core.publisher.Mono;
 
 @RestController
 @RequestMapping("/auth")
@@ -24,23 +27,22 @@ public class AuthenticationController {
     MessageUtil messageUtil;
 
     @PostMapping("/login")
-    public BaseResponse<LoginUserResponse> login(@RequestBody BaseRequest<LoginUserRequest> request) {
+    public BaseResponse<Object> login(@RequestBody BaseRequest<LoginUserRequest> request) {
         long startTime = System.currentTimeMillis();
-        LoginUserResponse response = authenticationService.loginUser(request.getData());
-        return BaseResponse.<LoginUserResponse>builder()
+        return BaseResponse.builder()
                 .requestId(request.getRequestId())
                 .requestTime(request.getClientRequestId())
                 .resultDesc(messageUtil.getMessage("FETCH_SUCCESS"))
-                .data(response)
+                .data(authenticationService.loginUser(request.getData()))
                 .cost(System.currentTimeMillis() - startTime)
                 .build();
     }
 
     @PostMapping("/register")
-    public BaseResponse<Void> register(@RequestBody BaseRequest<RegisterUserRequest> request) {
+    public BaseResponse<Object> register(@RequestBody BaseRequest<RegisterUserRequest> request) {
         long startTime = System.currentTimeMillis();
         authenticationService.registerUser(request.getData());
-        return BaseResponse.<Void>builder()
+        return BaseResponse.builder()
                 .requestId(request.getRequestId())
                 .requestTime(request.getClientRequestId())
                 .resultDesc(messageUtil.getMessage("REGISTRATION_SUCCESS"))
@@ -49,15 +51,28 @@ public class AuthenticationController {
     }
 
     @DeleteMapping("/delete")
-    public BaseResponse<Void> delete(@RequestBody BaseRequest<IdRequest> request) {
+    public BaseResponse<Object> delete(@RequestBody BaseRequest<IdRequest> request) {
         long startTime = System.currentTimeMillis();
         authenticationService.deleteUser(request.getData());
-        return BaseResponse.<Void>builder()
-                .requestId(request.getRequestId())
+        return BaseResponse.builder()
                 .requestId(request.getRequestId())
                 .requestTime(request.getClientRequestId())
                 .resultDesc(messageUtil.getMessage("DELETE_SUCCESS"))
                 .cost(System.currentTimeMillis() - startTime)
                 .build();
+    }
+
+    @PostMapping("/introspect")
+    public Mono<BaseResponse<IntrospectResponse>> introspect(@Valid @RequestBody BaseRequest<IntrospectRequest> request) {
+        long startTime = System.currentTimeMillis();
+        return authenticationService.introspectToken(request.getData())
+                .map(resp -> BaseResponse.<IntrospectResponse>builder()
+                        .requestId(request.getRequestId())
+                        .requestTime(request.getClientRequestId())
+                        .resultDesc("FETCH_SUCCESS")
+                        .data(resp)
+                        .cost(System.currentTimeMillis() - startTime)
+                        .build()
+                );
     }
 }

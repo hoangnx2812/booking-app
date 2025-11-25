@@ -9,16 +9,16 @@ import org.springframework.util.StringUtils;
 @Getter
 @Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class AppException extends RuntimeException {
+public class GlobalException extends RuntimeException {
     ErrorCode errorCode;
     String customMessage;
 
-    public AppException(ErrorCode errorCode) {
+    public GlobalException(ErrorCode errorCode) {
         super(errorCode.getMessage());
         this.errorCode = errorCode;
     }
 
-    public AppException(ErrorCode errorCode, String customMessage) {
+    public GlobalException(ErrorCode errorCode, String customMessage) {
         super(StringUtils.hasText(customMessage) ? customMessage : errorCode.getMessage());
         this.errorCode = errorCode;
         this.customMessage = customMessage;

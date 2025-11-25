@@ -3,20 +3,23 @@ package com.example.authenservice.service;
 
 import com.example.authenservice.dto.request.LoginUserRequest;
 import com.example.authenservice.dto.request.RegisterUserRequest;
-import com.example.authenservice.dto.request.UserInfoResponse;
-import com.example.authenservice.dto.response.LoginUserResponse;
 import com.example.commericalcommon.dto.request.IdRequest;
+import com.example.commericalcommon.dto.request.IntrospectRequest;
+import com.example.commericalcommon.dto.response.IntrospectResponse;
+import reactor.core.publisher.Mono;
 
 public interface AuthenticationService {
 
     Object registerUser(RegisterUserRequest request);
 
-    LoginUserResponse loginUser(LoginUserRequest request);
+    Object loginUser(LoginUserRequest request);
 
-    UserInfoResponse getUserProfile();
+    Object getUserProfile();
 
-    UserInfoResponse getAllUserProfiles();
+    Object getAllUserProfiles();
 
     Object deleteUser(IdRequest request);
+
+    Mono<IntrospectResponse> introspectToken(IntrospectRequest request);
 
 }

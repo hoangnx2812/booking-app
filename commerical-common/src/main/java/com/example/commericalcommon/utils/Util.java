@@ -2,6 +2,8 @@ package com.example.commericalcommon.utils;
 
 import lombok.experimental.UtilityClass;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -45,6 +47,14 @@ public class Util {
         }
         return hex.toString();
     }
+
+    public static String getStackTrace(Exception e) {
+        StringWriter sWriter = new StringWriter();
+        PrintWriter pWriter = new PrintWriter(sWriter);
+        e.printStackTrace(pWriter);
+        return sWriter.toString();
+    }
+
 
     public static void main(String[] args) {
         System.out.println(encryptSHA256("6f2cb9dd8f4b65e24e1c3f3fa5bc57982349237f11abceacd45bbcb74d621c25"));

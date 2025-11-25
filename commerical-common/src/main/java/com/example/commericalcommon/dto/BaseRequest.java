@@ -14,7 +14,7 @@ import java.io.Serializable;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class BaseRequest<T> extends PageRequest  implements Serializable {
+public class BaseRequest<T> implements Serializable {
     @Serial
     private static final long serialVersionUID = 3944318010482161888L;
 

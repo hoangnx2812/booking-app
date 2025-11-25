@@ -130,6 +130,10 @@ public class UserInfo {
     @Column(name = "longitude")
     Double longitude;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "area_id")
+    private Area area;
+
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();

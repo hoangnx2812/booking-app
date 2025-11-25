@@ -11,9 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import org.springframework.web.servlet.resource.NoResourceFoundException;
 
-import java.nio.file.AccessDeniedException;
 import java.util.Objects;
 
 @RestControllerAdvice
@@ -32,21 +30,14 @@ public class GlobalExceptionHandler {
                         ErrorCode.UNCATEGORIZED_EXCEPTION.getMessage()));
     }
 
-    @ExceptionHandler(value = AppException.class)
-    ResponseEntity<BaseResponse<Object>> handlingAppException(AppException exception) {
+    @ExceptionHandler(value = GlobalException.class)
+    ResponseEntity<BaseResponse<Object>> handlingAppException(GlobalException exception) {
         ErrorCode errorCode = exception.getErrorCode();
         return ResponseEntity
                 .status(errorCode.getStatusCode())
                 .body(setBaseResponse(errorCode.getCode(), errorCode.getMessage()));
     }
 
-    @ExceptionHandler(value = AccessDeniedException.class)
-    ResponseEntity<BaseResponse<Object>> handlingAccessDeniedException(AccessDeniedException exception) {
-        ErrorCode errorCode = ErrorCode.UNAUTHORIZED;
-        return ResponseEntity
-                .status(errorCode.getStatusCode())
-                .body(setBaseResponse(errorCode.getCode(), errorCode.getMessage()));
-    }
 
     @ExceptionHandler(value = MethodArgumentNotValidException.class)
     ResponseEntity<BaseResponse<Object>> handlingValidation(MethodArgumentNotValidException exception) {
@@ -54,14 +45,6 @@ public class GlobalExceptionHandler {
                 .badRequest()
                 .body(setBaseResponse(ErrorCode.INVALID_INPUT.getCode(),
                         Objects.requireNonNull(exception.getFieldError()).getDefaultMessage()));
-    }
-
-    @ExceptionHandler(NoResourceFoundException.class)
-    public ResponseEntity<BaseResponse<Object>> handleNoResourceFoundException() {
-        ErrorCode errorCode = ErrorCode.INVALID_ENDPOINT;
-        return ResponseEntity
-                .status(errorCode.getStatusCode())
-                .body(setBaseResponse(String.valueOf(errorCode.getCode()), errorCode.getMessage()));
     }
 
 

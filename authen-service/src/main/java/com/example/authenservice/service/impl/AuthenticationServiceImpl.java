@@ -4,7 +4,6 @@ package com.example.authenservice.service.impl;
 import com.example.authenservice.configuration.KeycloakProperties;
 import com.example.authenservice.dto.request.LoginUserRequest;
 import com.example.authenservice.dto.request.RegisterUserRequest;
-import com.example.authenservice.dto.request.UserInfoResponse;
 import com.example.authenservice.dto.response.LoginUserResponse;
 import com.example.authenservice.entity.UserAuth;
 import com.example.authenservice.entity.UserInfo;
@@ -12,10 +11,13 @@ import com.example.authenservice.repository.UserAuthRepository;
 import com.example.authenservice.repository.UserInfoRepository;
 import com.example.authenservice.service.AuthenticationService;
 import com.example.commericalcommon.dto.request.IdRequest;
-import com.example.commericalcommon.exception.AppException;
+import com.example.commericalcommon.dto.request.IntrospectRequest;
+import com.example.commericalcommon.dto.response.IntrospectResponse;
 import com.example.commericalcommon.exception.ErrorCode;
+import com.example.commericalcommon.exception.GlobalException;
 import com.example.commericalcommon.utils.AuthorityConstant;
 import com.example.commericalcommon.utils.Constant;
+import com.fasterxml.jackson.databind.JsonNode;
 import jakarta.ws.rs.core.Response;
 import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
@@ -30,9 +32,12 @@ import org.keycloak.representations.idm.RoleRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.reactive.function.client.WebClient;
+import reactor.core.publisher.Mono;
 
 import java.util.Collections;
 
@@ -48,20 +53,18 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     UserAuthRepository userAuthRepository;
     UserInfoRepository userInfoRepository;
     Keycloak adminKeycloak;
-    Keycloak appKeycloak;
+    WebClient webClient;
 
     public AuthenticationServiceImpl(KeycloakProperties keycloakProperties,
                                      UserAuthRepository userAuthRepository,
                                      UserInfoRepository userInfoRepository,
                                      @Qualifier("adminKeycloak")
-                                     Keycloak adminKeycloak,
-                                     @Qualifier("appKeycloak")
-                                     Keycloak appKeycloak) {
+                                     Keycloak adminKeycloak, WebClient webClient) {
         this.keycloakProperties = keycloakProperties;
         this.userAuthRepository = userAuthRepository;
         this.userInfoRepository = userInfoRepository;
         this.adminKeycloak = adminKeycloak;
-        this.appKeycloak = appKeycloak;
+        this.webClient = webClient;
     }
 
     @Override
@@ -95,61 +98,61 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         userRepresentation.setEnabled(true);
         userRepresentation.setRequiredActions(Collections.emptyList());
 
-        Response response = adminKeycloak.realm(keycloakProperties.getRealm())
+        try (Response response = adminKeycloak.realm(keycloakProperties.getRealm())
                 .users()
-                .create(userRepresentation);
+                .create(userRepresentation)) {
+            if (HttpStatus.CREATED.value() == response.getStatus()) {
+                String location = response.getLocation().toString();
+                String userId = location.substring(location.lastIndexOf("/") + 1);
 
-        if (HttpStatus.CREATED.value() == response.getStatus()) {
-            String location = response.getLocation().toString();
-            String userId = location.substring(location.lastIndexOf("/") + 1);
+                user.setUserInfoNo(userInfo.getUserNo());
+                user.setUserInfoId(userInfo.getId());
+                user.setKeycloakId(userId);
+                userAuthRepository.save(user);
 
-            user.setUserInfoNo(userInfo.getUserNo());
-            user.setUserInfoId(userInfo.getId());
-            user.setKeycloakId(userId);
-            userAuthRepository.save(user);
+                //Them pass
+                CredentialRepresentation credential = new CredentialRepresentation();
+                credential.setTemporary(false);
+                credential.setType(CredentialRepresentation.PASSWORD);
+                credential.setValue(request.getPassword());
+                adminKeycloak.realm(keycloakProperties.getRealm())
+                        .users()
+                        .get(userId)
+                        .resetPassword(credential);
 
-            //Them pass
-            CredentialRepresentation credential = new CredentialRepresentation();
-            credential.setTemporary(false);
-            credential.setType(CredentialRepresentation.PASSWORD);
-            credential.setValue(request.getPassword());
-            adminKeycloak.realm(keycloakProperties.getRealm())
-                    .users()
-                    .get(userId)
-                    .resetPassword(credential);
+                //Them role mac dinh la USER
+                UserResource userResource = adminKeycloak
+                        .realm(keycloakProperties.getRealm())
+                        .users()
+                        .get(userId);
+                RoleRepresentation generalRole = adminKeycloak
+                        .realm(keycloakProperties.getRealm())
+                        .roles()
+                        .get(Constant.DefaultRole.USER)
+                        .toRepresentation();
+                userResource.roles().realmLevel().add(Collections.singletonList(generalRole));
 
-            //Them role mac dinh la USER
-            UserResource userResource = adminKeycloak
-                    .realm(keycloakProperties.getRealm())
-                    .users()
-                    .get(userId);
-            RoleRepresentation generalRole = adminKeycloak
-                    .realm(keycloakProperties.getRealm())
-                    .roles()
-                    .get(Constant.DefaultRole.USER)
-                    .toRepresentation();
-            userResource.roles().realmLevel().add(Collections.singletonList(generalRole));
-
-            log.info("User created in Keycloak: {}", request.getUsername());
-        } else {
-            String errorBody = response.readEntity(String.class);
-            log.error("Failed to create user in Keycloak: {}", errorBody);
-            throw new AppException(ErrorCode.INVALID_INPUT);
+                log.info("User created in Keycloak: {}", request.getUsername());
+            } else {
+                String errorBody = response.readEntity(String.class);
+                log.error("Failed to create user in Keycloak: {}", errorBody);
+                throw new GlobalException(ErrorCode.INVALID_INPUT);
+            }
         }
         return "User registered successfully";
     }
 
 
     @Override
-    public LoginUserResponse loginUser(LoginUserRequest request) {
+    public Object loginUser(LoginUserRequest request) {
         UserAuth user = userAuthRepository
                 .findByUserName(request.getUsername())
-                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+                .orElseThrow(() -> new GlobalException(ErrorCode.USER_NOT_EXISTED));
 
         String hashedInputPassword = encryptSHA256(request.getPassword() + user.getUserSalt());
         boolean authenticated = user.getUserPwdHash().equals(hashedInputPassword);
 
-        if (!authenticated) throw new AppException(ErrorCode.UNAUTHENTICATED);
+        if (!authenticated) throw new GlobalException(ErrorCode.UNAUTHENTICATED);
 
         try (Keycloak keycloak = KeycloakBuilder.builder()
                 .serverUrl(keycloakProperties.getUrls())
@@ -172,21 +175,21 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             log.error("HTTP Error: {}", ex.getResponse().getStatus());
             String body = ex.getResponse().readEntity(String.class);
             log.error("Response body: {}", body);
-            throw new AppException(ErrorCode.UNCATEGORIZED_EXCEPTION, body);
+            throw new GlobalException(ErrorCode.UNCATEGORIZED_EXCEPTION, body);
 
         } catch (Exception e) {
             log.error("Login failed cause: ", e);
-            throw new AppException(ErrorCode.UNCATEGORIZED_EXCEPTION);
+            throw new GlobalException(ErrorCode.UNCATEGORIZED_EXCEPTION);
         }
     }
 
     @Override
-    public UserInfoResponse getUserProfile() {
+    public Object getUserProfile() {
         return null;
     }
 
     @Override
-    public UserInfoResponse getAllUserProfiles() {
+    public Object getAllUserProfiles() {
         return null;
     }
 
@@ -195,31 +198,52 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     @PreAuthorize(AuthorityConstant.DefaultRole.ADMIN)
     public Object deleteUser(IdRequest request) {
         UserInfo userInfo = userInfoRepository.findByUserAuthId(request.getId())
-                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+                .orElseThrow(() -> new GlobalException(ErrorCode.USER_NOT_EXISTED));
         String keyCloakId = userInfo.getUserAuth().getKeycloakId();
         userInfoRepository.delete(userInfo);
         userAuthRepository.deleteById(request.getId());
 
-
-        Keycloak keycloak = KeycloakBuilder.builder()
-                .serverUrl(keycloakProperties.getUrls())
-                .realm(keycloakProperties.getAdmin().getRealm())
-                .clientId(keycloakProperties.getAdmin().getClientId())
-                .username(keycloakProperties.getAdmin().getUsername())
-                .password(keycloakProperties.getAdmin().getPassword())
-                .build();
-
-        Response response = keycloak.realm(keycloakProperties.getRealm())
+        try (Response response = adminKeycloak.realm(keycloakProperties.getRealm())
                 .users()
-                .delete(keyCloakId);
-
-        keycloak.close();
-        if (HttpStatus.NO_CONTENT.value() != response.getStatus()) {
-            String errorBody = response.readEntity(String.class);
-            log.error("Failed to deleted user in Keycloak: {}", errorBody);
-            throw new AppException(ErrorCode.UNCATEGORIZED_EXCEPTION);
+                .delete(keyCloakId)) {
+            if (HttpStatus.NO_CONTENT.value() != response.getStatus()) {
+                String errorBody = response.readEntity(String.class);
+                log.error("Failed to deleted user in Keycloak: {}", errorBody);
+                throw new GlobalException(ErrorCode.UNCATEGORIZED_EXCEPTION);
+            }
         }
         return "User deleted";
     }
+
+    @Override
+    public Mono<IntrospectResponse> introspectToken(IntrospectRequest request) {
+        String url = keycloakProperties.getUrls()
+                + "/realms/"
+                + keycloakProperties.getRealm()
+                + "/protocol/openid-connect/token/introspect";
+        IntrospectResponse introspectResponse = new IntrospectResponse();
+        return webClient.post()
+                .uri(url)
+                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                .accept(MediaType.APPLICATION_JSON)
+                .headers(h ->
+                        h.setBasicAuth(keycloakProperties.getClientId(), keycloakProperties.getClientSecret()))
+                .bodyValue("token=" + request.getToken())
+                .retrieve()
+                .bodyToMono(JsonNode.class)
+                .map(response -> {
+                    boolean active = response.get("active").asBoolean();
+                    introspectResponse.setValid(active);
+                    return introspectResponse;
+                })
+                .switchIfEmpty(Mono.just(IntrospectResponse.builder().valid(false).build()))
+                .doOnError(throwable -> log.error("Error during token introspection: ", throwable))
+                .onErrorResume(e -> {
+                    log.error("Token verification failed: ", e);
+                    return Mono.error(new GlobalException(ErrorCode.UNAUTHENTICATED));
+                });
+    }
+
+
 }
 

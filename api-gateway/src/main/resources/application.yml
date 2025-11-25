@@ -1,18 +1,15 @@
 spring:
   application:
     name: api-gateway
-  datasource:
-    driver-class-name: org.postgresql.Driver
-    url: jdbc:postgresql://localhost:5432/booking-web
-    username: root
-    password: root
-  jpa:
-    show-sql: true
-    hibernate:
-      ddl-auto: update
-    properties:
-      hibernate:
-        format_sql: true
+  cloud:
+    gateway:
+      server:
+        webflux:
+          routes:
+            - id: authentication_service
+              uri: http://localhost:8080
+              predicates:
+                - Path=/authentication/**
 
 server:
   port: 8888
