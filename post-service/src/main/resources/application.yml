@@ -3,7 +3,7 @@ spring:
     name: post-service
   datasource:
     driver-class-name: org.postgresql.Driver
-    url: jdbc:postgresql://localhost:5432/post
+    url: jdbc:postgresql://192.168.3.41:5432/post
     username: root
     password: root
   jpa:
@@ -26,7 +26,7 @@ jwt:
 
 keycloak:
   realm: bka
-  domain: localhost:8090
+  domain: 192.168.3.41:8090
   clientId: bka_app
   clientSecret: JBIlGc9mx1WeLTGqgbhDTYUfftJBkrlK
   admin:
@@ -43,3 +43,11 @@ logging:
     file: '{"timestamp":"%d{yyyy-MM-dd''T''HH:mm:ss.SSSZ}","level":"%p","service":"${spring.application.name:-unknown}","env":"${spring.profiles.active:-local}","thread":"%t","class":"%C{1}.%M:%L","traceId":"%X{traceId:-}","spanId":"%X{spanId:-}","requestId":"%X{requestId:-}","message":"%replace(%msg){"\n"," "}"}'
   file:
     name: logs/post_service.log
+server:
+  port: 8081
+
+minio:
+  url: http://192.168.3.41:9000
+  username: bkaadmin
+  password: bkaadmin
+  attachments-bucket: attachment

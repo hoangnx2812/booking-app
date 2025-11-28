@@ -3,7 +3,7 @@ spring:
     name: authentication-service
   datasource:
     driver-class-name: org.postgresql.Driver
-    url: jdbc:postgresql://localhost:5432/authentication
+    url: jdbc:postgresql://192.168.3.41:5432/authentication
     username: root
     password: root
   jpa:
@@ -26,9 +26,9 @@ jwt:
 
 keycloak:
   realm: bka
-  domain: localhost:8090
+  domain: 192.168.3.41:8090
   clientId: bka_app
-  clientSecret: JBIlGc9mx1WeLTGqgbhDTYUfftJBkrlK
+  clientSecret: Ob0EHvSfegfwGlx1MOWItFP24OwIGl1e
   admin:
     username: admin
     password: admin123
