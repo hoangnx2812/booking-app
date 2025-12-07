@@ -6,4 +6,5 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface PostCommentRepository extends JpaRepository<PostComment, Long> {
+    Integer countByPosts_Id(Long posts_id);
 }

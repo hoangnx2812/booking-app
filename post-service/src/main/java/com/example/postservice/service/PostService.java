@@ -1,10 +1,12 @@
 package com.example.postservice.service;
 
-import java.util.List;
+import com.example.commericalcommon.dto.PageResponse;
+import com.example.postservice.dto.request.GetPostRequest;
+import com.example.postservice.dto.response.GetPostsResponse;
 
 public interface PostService {
 
-    List<Object> getPostsByConditions(Object post);
+    PageResponse<GetPostsResponse> getPostsByConditions(GetPostRequest request);
 
     Object addPost(Object post);
 

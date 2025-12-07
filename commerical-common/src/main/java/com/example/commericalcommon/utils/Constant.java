@@ -1,8 +1,23 @@
 package com.example.commericalcommon.utils;
 
+import java.util.List;
+
 public class Constant {
     public static final String DEFAULT_PAGE_NUMBER = "0";
     public static final String DEFAULT_PAGE_SIZE = "10";
+    public static final String[]  PUBLIC_ENDPOINTS = {
+            "/auth/register",
+            "/auth/login",
+            "/public/**",
+            "/v3/api-docs/**",
+            "/configuration/**",
+            "/swagger-ui/**",
+            "/swagger-resources/**",
+            "/swagger-ui.html",
+            "/webjars/**",
+            "/api-docs/**",
+            "/posts/by-conditions"
+    };
 
     public static class DefaultRole {
         public static final String ADMIN = "ADMIN";
@@ -26,4 +41,20 @@ public class Constant {
         public static final String VIETNAMESE = "vi";
         public static final String ENGLISH = "en";
     }
+
+    public static class Hashtag {
+        public static class ObjectType {
+            public static final String POST = "POST";
+            public static final String PRODUCT = "PRODUCT";
+        }
+    }
+
+    public static class Attachment {
+        public static class ObjectType {
+            public static final String POST = "POST";
+            public static final String PRODUCT = "PRODUCT";
+        }
+    }
+
+
 }

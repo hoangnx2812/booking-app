@@ -15,22 +15,14 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
 
+import static com.example.commericalcommon.utils.Constant.PUBLIC_ENDPOINTS;
+
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class SecurityConfig {
-    String[] PUBLIC_ENDPOINTS = {
-            "/public/**",
-            "/v3/api-docs/**",
-            "/configuration/**",
-            "/swagger-ui/**",
-            "/swagger-resources/**",
-            "/swagger-ui.html",
-            "/webjars/**",
-            "/api-docs/**"
-    };
     JwtAuthConverter jwtAuthConverter;
 
     @Bean
