@@ -21,8 +21,6 @@ public class PostServiceImpl implements PostService {
     @Override
     public PageResponse<GetPostsResponse> getPostsByConditions(GetPostRequest request) {
         int offset = (request.getPage() - 1) * request.getSize();
-//        Long totalElements = postRepositoryJdbc.totalElements(request);
-//        int totalPages = (int) Math.ceil((double) totalElements / request.getSize());
         return PageResponse.<GetPostsResponse>builder()
                 .content(postRepositoryJdbc.getPostsByConditions(request, offset))
                 .currentPage(request.getPage())

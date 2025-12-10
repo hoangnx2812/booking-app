@@ -7,10 +7,13 @@ import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.jdbc.support.GeneratedKeyHolder;
+import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.StringUtils;
 
 import java.util.List;
+import java.util.Objects;
 
 @Repository
 @RequiredArgsConstructor
@@ -45,5 +48,50 @@ public class HashtagRepositoryJdbc {
                         .objectType(rs.getString("object_type"))
                         .objectId(rs.getLong("object_id"))
                         .build());
+    }
+
+    public HashtagsDTO getHashTagByConditions(Long id, String name) {
+        String sql = """
+                select * from hashtags where 1 = 1
+                """;
+        MapSqlParameterSource params = new MapSqlParameterSource();
+        if (StringUtils.hasText(name)) {
+            sql += " and hashtag = :hashtag ";
+            params.addValue("hashtag", name);
+        }
+        if (id != null) {
+            sql += " and id = :id ";
+            params.addValue("id", id);
+        }
+        return namedParameterJdbcTemplate.queryForObject(sql, params, (rs, rowNum) ->
+                HashtagsDTO.builder()
+                        .id(rs.getLong("id"))
+                        .name(rs.getString("hashtag"))
+                        .build());
+    }
+
+    public void insertHashtagMap(Long hashtagId, Long objectId, String objectType) {
+        String sql = """
+                insert into hashtags_map (hashtag_id, object_id, object_type, hashtag_id)
+                values (:hashtag_id, :object_id, :object_type, :hashtag_id)
+                """;
+        MapSqlParameterSource params = new MapSqlParameterSource();
+        params.addValue("hashtag_id", hashtagId);
+        params.addValue("object_id", objectId);
+        params.addValue("object_type", objectType);
+        params.addValue("hashtag_id", hashtagId);
+        namedParameterJdbcTemplate.update(sql, params);
+    }
+
+    public Long insertHashtag(String name) {
+        KeyHolder keyHolder = new GeneratedKeyHolder();
+        String sql = """
+                insert into hashtags (hashtag)
+                values (:hashtag)
+                """;
+        MapSqlParameterSource params = new MapSqlParameterSource();
+        params.addValue("hashtag", name);
+        namedParameterJdbcTemplate.update(sql, params);
+        return Objects.requireNonNull(keyHolder.getKey()).longValue();
     }
 }

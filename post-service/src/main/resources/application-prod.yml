@@ -1,0 +1,57 @@
+spring:
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://${POST_DB_HOST:192.168.3.41}:${POST_DB_PORT:5432}/${POST_DB_NAME:post}
+    username: ${POST_DB_USER:root}
+    password: ${POST_DB_PASSWORD:root}
+  jpa:
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://${keycloak.domain}/realms/${keycloak.realm}
+  data:
+    redis:
+      host: ${REDIS_HOST:192.168.3.41}
+      port: ${REDIS_PORT:6379}
+      connect-timeout: 10000
+      password:
+      sentinel:
+        master: ''
+        nodes: ''
+      jedis:
+        pool:
+          max-idle: 3
+          min-idle: 2
+          max-total: 300
+          min-evictable-idle-time: 60000
+          time-between-eviction-runs: 30000
+          num-tests-per-eviction-run: 10
+          max-wait: 1000
+jwt:
+  auth:
+    converter:
+      resource-id: ${keycloak.clientId}
+      principal-attribute: preferred_username
+
+keycloak:
+  realm: ${KEYCLOAK_REALM:bka}
+  domain: ${KEYCLOAK_HOST:192.168.3.41}:${KEYCLOAK_PORT:8090}
+  clientId: ${KEYCLOAK_CLIENT_ID:bka_app}
+  clientSecret: ${KEYCLOAK_CLIENT_SECRET:JBIlGc9mx1WeLTGqgbhDTYUfftJBkrlK}
+  admin:
+    username: ${KEYCLOAK_ADMIN_USERNAME:admin}
+    password: ${KEYCLOAK_ADMIN_PASSWORD:admin123}
+    realm: master
+    clientId: admin-cli
+  urls: http://${keycloak.domain}
+
+minio:
+  url: ${MINIO_ENDPOINT:http://192.168.3.41:9000}
+  username: ${MINIO_USERNAME:bkaadmin}
+  password: ${MINIO_PASSWORD:bkaadmin}
+  attachments-bucket: ${MINIO_ATTACHMENTS_BUCKET:attachment}

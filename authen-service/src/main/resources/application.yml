@@ -1,46 +1,12 @@
 spring:
   application:
     name: authentication-service
-  datasource:
-    driver-class-name: org.postgresql.Driver
-    url: jdbc:postgresql://${AUTHENTICATION_DB_HOST}:${AUTHENTICATION_DB_PORT}/${AUTHENTICATION_DB_NAME}
-    username: ${AUTHENTICATION_DB_USER}
-    password: ${AUTHENTICATION_DB_PASSWORD}
-  jpa:
-    show-sql: true
-    properties:
-      hibernate:
-        format_sql: true
-  security:
-    oauth2:
-      resourceserver:
-        jwt:
-          issuer-uri: http://${keycloak.domain}/realms/${keycloak.realm}
-
-
-jwt:
-  auth:
-    converter:
-      resource-id: ${keycloak.clientId}
-      principal-attribute: preferred_username
-
-keycloak:
-  realm: ${KEYCLOAK_REALM}
-  domain: ${KEYCLOAK_HOST}:${KEYCLOAK_PORT}
-  clientId: ${KEYCLOAK_CLIENT_ID}
-  clientSecret: ${KEYCLOAK_CLIENT_SECRET}
-  admin:
-    username: ${KEYCLOAK_ADMIN_USERNAME}
-    password: ${KEYCLOAK_ADMIN_PASSWORD}
-    realm: master
-    clientId: admin-cli
-  urls: http://${keycloak.domain}
 
 app:
   admin:
     account:
-      username: ${AUTHENTICATION_ADMIN_USERNAME}
-      password: ${AUTHENTICATION_ADMIN_PASSWORD}
+      username: ${AUTHENTICATION_ADMIN_USERNAME:admin}
+      password: ${AUTHENTICATION_ADMIN_PASSWORD:Admin@12345}
 
 server:
   port: 8080

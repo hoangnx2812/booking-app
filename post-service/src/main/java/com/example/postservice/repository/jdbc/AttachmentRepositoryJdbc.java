@@ -8,9 +8,12 @@ import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.jdbc.support.GeneratedKeyHolder;
+import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Objects;
 
 @Repository
 @RequiredArgsConstructor
@@ -63,12 +66,115 @@ public class AttachmentRepositoryJdbc {
                 (rs, rowNum) ->
                         AttachmentDTO.builder()
                                 .id(rs.getLong("id"))
-                                .name(rs.getString("name"))
+                                .fileName(rs.getString("name"))
                                 .build());
         return attachments.isEmpty() ? null : attachments.getFirst();
     }
 
+    public void insertAttachmentMap(String code,
+                                    String displayName,
+                                    String objectType,
+                                    Long objectId,
+                                    String clientUploadCode,
+                                    String description,
+                                    Long createdBy,
+                                    String status,
+                                    Integer orderNo,
+                                    Long attachmentId) {
+        String sql = """
+                INSERT INTO attachment_map (
+                                code,
+                                display_name,
+                                object_type,
+                                object_id,
+                                client_upload_code,
+                                description,
+                                created_by,
+                                status,
+                                order_no,
+                                attachment_id
+                            ) VALUES (
+                                :code,
+                                :displayName,
+                                :objectType,
+                                :objectId,
+                                :clientUploadCode,
+                                :description,
+                                :createdBy,
+                                :status,
+                                :orderNo,
+                                :attachmentId
+                            )
+                """;
+        MapSqlParameterSource params = new MapSqlParameterSource()
+                .addValue("code", code)
+                .addValue("displayName", displayName)
+                .addValue("objectType", objectType)
+                .addValue("objectId", objectId)
+                .addValue("clientUploadCode", clientUploadCode)
+                .addValue("description", description)
+                .addValue("createdBy", createdBy)
+                .addValue("status", status)
+                .addValue("orderNo", orderNo)
+                .addValue("attachmentId", attachmentId);
+        namedParameterJdbcTemplate.update(sql, params);
+    }
 
+    public Long insert(AttachmentDTO dto) {
+        KeyHolder keyHolder = new GeneratedKeyHolder();
+        String sql = """
+                INSERT INTO attachment (
+                    mime_type,
+                    file_name,
+                    thumbnail,
+                    file_path_sm,
+                    file_path_lg,
+                    file_path_original,
+                    checksum,
+                    size,
+                    description,
+                    created_by,
+                    folder,
+                    source,
+                    is_sync_vultr,
+                    is_sync_vultr_error
+                ) VALUES (
+                    :mimeType,
+                    :fileName,
+                    :thumbnail,
+                    :filePathSm,
+                    :filePathLg,
+                    :filePathOriginal,
+                    :checksum,
+                    :size,
+                    :description,
+                    :createdBy,
+                    :folder,
+                    :source,
+                    :isSyncVultr,
+                    :isSyncVultrError
+                )
+                """;
+
+        MapSqlParameterSource params = new MapSqlParameterSource()
+                .addValue("mimeType", dto.getMimeType())
+                .addValue("fileName", dto.getFileName())
+                .addValue("thumbnail", dto.getThumbnail())
+                .addValue("filePathSm", dto.getFilePathSm())
+                .addValue("filePathLg", dto.getFilePathLg())
+                .addValue("filePathOriginal", dto.getFilePathOriginal())
+                .addValue("checksum", dto.getChecksum())
+                .addValue("size", dto.getSize())
+                .addValue("description", dto.getDescription())
+                .addValue("createdBy", dto.getCreatedBy())
+                .addValue("folder", dto.getFolder() != null ? dto.getFolder() : "uploads")
+                .addValue("source", dto.getSource() != null ? dto.getSource() : "s3")
+                .addValue("isSyncVultr", dto.getIsSyncVultr() != null ? dto.getIsSyncVultr() : false)
+                .addValue("isSyncVultrError", dto.getIsSyncVultrError() != null ? dto.getIsSyncVultrError() : false);
+
+        namedParameterJdbcTemplate.update(sql, params);
+        return Objects.requireNonNull(keyHolder.getKey()).longValue();
+    }
 
 
 }

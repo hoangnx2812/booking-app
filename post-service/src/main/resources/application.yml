@@ -1,41 +1,8 @@
 spring:
   application:
     name: post-service
-  datasource:
-    driver-class-name: org.postgresql.Driver
-    url: jdbc:postgresql://${POST_DB_HOST}:${POST_DB_PORT}/${POST_DB_NAME}
-    username: ${POST_DB_USER}
-    password: ${POST_DB_PASSWORD}
-  jpa:
-    show-sql: true
-    properties:
-      hibernate:
-        format_sql: true
-  security:
-    oauth2:
-      resourceserver:
-        jwt:
-          issuer-uri: http://${keycloak.domain}/realms/${keycloak.realm}
-
-
-jwt:
-  auth:
-    converter:
-      resource-id: ${keycloak.clientId}
-      principal-attribute: preferred_username
-
-keycloak:
-  realm: ${KEYCLOAK_REALM}
-  domain: ${KEYCLOAK_HOST}:${KEYCLOAK_PORT}
-  clientId: ${KEYCLOAK_CLIENT_ID}
-  clientSecret: ${KEYCLOAK_CLIENT_SECRET}
-  admin:
-    username: ${KEYCLOAK_ADMIN_USERNAME}
-    password: ${KEYCLOAK_ADMIN_PASSWORD}
-    realm: master
-    clientId: admin-cli
-  urls: http://${keycloak.domain}
-
+  profiles:
+    active: local
 
 logging:
   pattern:
@@ -59,10 +26,3 @@ app:
   services:
     authentication:
       url: http://localhost:8080/authentication
-
-
-minio:
-  url: ${MINIO_ENDPOINT}
-  username: ${MINIO_USERNAME}
-  password: ${MINIO_PASSWORD}
-  attachments-bucket: ${MINIO_ATTACHMENTS_BUCKET}

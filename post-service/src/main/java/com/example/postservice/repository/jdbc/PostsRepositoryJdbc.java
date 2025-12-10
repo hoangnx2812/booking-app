@@ -4,13 +4,17 @@ import com.example.commericalcommon.dto.BaseResponse;
 import com.example.commericalcommon.dto.object.HashtagsDTO;
 import com.example.commericalcommon.dto.object.ServicesDTO;
 import com.example.commericalcommon.dto.response.user.UserInfoResponse;
+import com.example.commericalcommon.service.RedisService;
 import com.example.commericalcommon.utils.Constant;
 import com.example.commericalcommon.utils.DateTimeFormatter;
+import com.example.commericalcommon.utils.RedisConstant;
 import com.example.postservice.dto.request.GetPostRequest;
 import com.example.postservice.dto.response.GetPostsResponse;
 import com.example.postservice.repository.PostCommentRepository;
 import com.example.postservice.repository.PostLikeRepository;
 import com.example.postservice.repository.httpclient.AuthenticationClient;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -39,6 +43,8 @@ public class PostsRepositoryJdbc {
     AttachmentRepositoryJdbc attachmentRepositoryJdbc;
     DateTimeFormatter dateTimeFormatter;
     AuthenticationClient authenticationClient;
+    RedisService redisService;
+    ObjectMapper objectMapper;
 
     public List<GetPostsResponse> getPostsByConditions(GetPostRequest request, int offset) {
         StringBuilder sql = new StringBuilder("""
@@ -89,17 +95,29 @@ public class PostsRepositoryJdbc {
         {
             Long id = rs.getLong("id");
             long userId = rs.getLong("user_id");
-            BaseResponse<UserInfoResponse> userInfo = authenticationClient.getUserById(Long.toString(userId));
-            log.info("Response from authentication-service: {}", userInfo);
-            if (!SUCCESS_CODE.equals(userInfo.getResultCode())){
-                return null;
+            UserInfoResponse userCache = redisService.hget(RedisConstant.Htable.USER_INFO,
+                    Long.toString(userId), UserInfoResponse.class);
+            if (userCache == null) {
+                BaseResponse<UserInfoResponse> userInfo = authenticationClient.getUserById(Long.toString(userId));
+                log.info("Response from authentication-service: {}", userInfo);
+                if (!SUCCESS_CODE.equals(userInfo.getResultCode())) {
+                    return null;
+                }
+                try {
+                    redisService.hset(RedisConstant.Htable.USER_INFO,
+                            Long.toString(userId),
+                            objectMapper.writeValueAsString(userInfo.getData()),
+                            RedisConstant.Htable.TTL_DEFAULT);
+                } catch (JsonProcessingException e) {
+                    log.error("Error while caching user info to Redis", e);
+                }
+                userCache = userInfo.getData();
             }
-            UserInfoResponse user = userInfo.getData();
             return GetPostsResponse.builder()
                     .postId(id)
                     .userId(userId)
-                    .userAvatar(user.getAvatar())
-                    .userFullName(user.getFullName())
+                    .userAvatar(userCache.getAvatar())
+                    .userFullName(userCache.getFullName())
                     .postTitle(rs.getString("title"))
                     .serviceName(servicesRepositoryJdbc.getServicesByConditions(null, null,
                                     null, null,
