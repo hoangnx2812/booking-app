@@ -1,5 +1,6 @@
 package com.example.postservice.repository.jdbc;
 
+import com.example.commericalcommon.dto.object.AttachmentDTO;
 import com.example.commericalcommon.dto.response.AttachmentResponse;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -36,7 +37,7 @@ public class AttachmentRepositoryJdbc {
         MapSqlParameterSource params = new MapSqlParameterSource()
                 .addValue("object_id", objectId)
                 .addValue("object_type", objectType);
-        return namedParameterJdbcTemplate.query(sql, (rs, rowNum) ->
+        return namedParameterJdbcTemplate.query(sql, params, (rs, rowNum) ->
                 AttachmentResponse.builder()
                         .id(rs.getLong("id"))
                         .name(rs.getString("name"))
@@ -48,4 +49,26 @@ public class AttachmentRepositoryJdbc {
                         .type(rs.getString("type"))
                         .build());
     }
+
+    public AttachmentDTO checkSumExists(String checkSum) {
+        String sql = """
+                select id, file_name
+                from attachment
+                where checksum = :checksum
+                and status = 'A'
+                """;
+        MapSqlParameterSource params = new MapSqlParameterSource()
+                .addValue("checksum", checkSum);
+        List<AttachmentDTO> attachments = namedParameterJdbcTemplate.query(sql, params,
+                (rs, rowNum) ->
+                        AttachmentDTO.builder()
+                                .id(rs.getLong("id"))
+                                .name(rs.getString("name"))
+                                .build());
+        return attachments.isEmpty() ? null : attachments.getFirst();
+    }
+
+
+
+
 }

@@ -1,11 +1,10 @@
 package com.example.commericalcommon.utils;
 
-import java.util.List;
-
 public class Constant {
+    public static final String SUCCESS_CODE = "00";
     public static final String DEFAULT_PAGE_NUMBER = "0";
-    public static final String DEFAULT_PAGE_SIZE = "10";
-    public static final String[]  PUBLIC_ENDPOINTS = {
+    public static final String DEFAULT_PAGE_SIZE = "12";
+    public static final String[] PUBLIC_ENDPOINTS = {
             "/auth/register",
             "/auth/login",
             "/public/**",
@@ -16,7 +15,8 @@ public class Constant {
             "/swagger-ui.html",
             "/webjars/**",
             "/api-docs/**",
-            "/posts/by-conditions"
+            "/posts/by-conditions",
+            "/internal/**"
     };
 
     public static class DefaultRole {

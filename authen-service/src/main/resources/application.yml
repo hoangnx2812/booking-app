@@ -3,9 +3,9 @@ spring:
     name: authentication-service
   datasource:
     driver-class-name: org.postgresql.Driver
-    url: jdbc:postgresql://localhost:5432/authentication
-    username: root
-    password: root
+    url: jdbc:postgresql://${AUTHENTICATION_DB_HOST}:${AUTHENTICATION_DB_PORT}/${AUTHENTICATION_DB_NAME}
+    username: ${AUTHENTICATION_DB_USER}
+    password: ${AUTHENTICATION_DB_PASSWORD}
   jpa:
     show-sql: true
     properties:
@@ -25,13 +25,13 @@ jwt:
       principal-attribute: preferred_username
 
 keycloak:
-  realm: bka
-  domain: localhost:8090
-  clientId: bka_app
-  clientSecret: Ob0EHvSfegfwGlx1MOWItFP24OwIGl1e
+  realm: ${KEYCLOAK_REALM}
+  domain: ${KEYCLOAK_HOST}:${KEYCLOAK_PORT}
+  clientId: ${KEYCLOAK_CLIENT_ID}
+  clientSecret: ${KEYCLOAK_CLIENT_SECRET}
   admin:
-    username: admin
-    password: admin123
+    username: ${KEYCLOAK_ADMIN_USERNAME}
+    password: ${KEYCLOAK_ADMIN_PASSWORD}
     realm: master
     clientId: admin-cli
   urls: http://${keycloak.domain}
@@ -39,8 +39,8 @@ keycloak:
 app:
   admin:
     account:
-      username: admin
-      password: Admin@12345
+      username: ${AUTHENTICATION_ADMIN_USERNAME}
+      password: ${AUTHENTICATION_ADMIN_PASSWORD}
 
 server:
   port: 8080
@@ -53,6 +53,12 @@ logging:
     file: '{"timestamp":"%d{yyyy-MM-dd''T''HH:mm:ss.SSSZ}","level":"%p","service":"${spring.application.name:-unknown}","env":"${spring.profiles.active:-local}","thread":"%t","class":"%C{1}.%M:%L","traceId":"%X{traceId:-}","spanId":"%X{spanId:-}","requestId":"%X{requestId:-}","message":"%replace(%msg){"\n"," "}"}'
   file:
     name: logs/authentication_service.log
+  level:
+    org:
+      springframework:
+        jdbc:
+          core:
+            JdbcTemplate: DEBUG
 
 springdoc:
   api-docs:

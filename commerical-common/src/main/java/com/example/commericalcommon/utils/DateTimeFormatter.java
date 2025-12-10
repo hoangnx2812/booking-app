@@ -25,10 +25,11 @@ public class DateTimeFormatter {
 
         var strategy = strategyMap.entrySet()
                 .stream()
-                .filter(longFunctionEntry -> elapseSeconds < longFunctionEntry.getKey())
+                .filter(longFunctionEntry ->
+                        elapseSeconds < longFunctionEntry.getKey())
                 .findFirst()
-                .get();
-        return strategy.getValue().apply(localDateTime);
+                .orElse(null);
+        return strategy != null ? strategy.getValue().apply(localDateTime) : "";
     }
 
     private String formatInSeconds(LocalDateTime localDateTime) {
@@ -47,6 +48,6 @@ public class DateTimeFormatter {
     }
 
     private String formatInDate(LocalDateTime localDateTime) {
-        return localDateTime.format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+        return localDateTime.format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"));
     }
 }

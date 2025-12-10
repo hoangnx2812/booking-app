@@ -175,11 +175,11 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             log.error("HTTP Error: {}", ex.getResponse().getStatus());
             String body = ex.getResponse().readEntity(String.class);
             log.error("Response body: {}", body);
-            throw new GlobalException(ErrorCode.UNCATEGORIZED_EXCEPTION, body);
+            throw new GlobalException(ErrorCode.UNCATEGORIZED, body);
 
         } catch (Exception e) {
             log.error("Login failed cause: ", e);
-            throw new GlobalException(ErrorCode.UNCATEGORIZED_EXCEPTION);
+            throw new GlobalException(ErrorCode.UNCATEGORIZED);
         }
     }
 
@@ -209,7 +209,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             if (HttpStatus.NO_CONTENT.value() != response.getStatus()) {
                 String errorBody = response.readEntity(String.class);
                 log.error("Failed to deleted user in Keycloak: {}", errorBody);
-                throw new GlobalException(ErrorCode.UNCATEGORIZED_EXCEPTION);
+                throw new GlobalException(ErrorCode.UNCATEGORIZED);
             }
         }
         return "User deleted";

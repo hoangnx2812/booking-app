@@ -1,15 +1,13 @@
-package com.example.authenservice.dto.response;
+package com.example.commericalcommon.dto.response.user;
 
-import lombok.AccessLevel;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 import lombok.experimental.FieldDefaults;
 
 @Getter
 @Setter
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
+@ToString
 public class UserInfoResponse {
     Long id;
     String userNo;

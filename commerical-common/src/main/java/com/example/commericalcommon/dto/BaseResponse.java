@@ -6,18 +6,21 @@ import lombok.experimental.FieldDefaults;
 import java.io.Serial;
 import java.io.Serializable;
 
+import static com.example.commericalcommon.utils.Constant.SUCCESS_CODE;
+
 @Getter
 @Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
+@ToString
 public class BaseResponse<T> implements Serializable {
     @Serial
     private static final long serialVersionUID = 624801615985179478L;
 
     @Builder.Default
-    String resultCode = "00";
+    String resultCode = SUCCESS_CODE;
 
     String resultDesc;
 

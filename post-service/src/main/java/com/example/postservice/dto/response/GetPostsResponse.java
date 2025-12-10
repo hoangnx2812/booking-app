@@ -14,6 +14,7 @@ import java.util.List;
 @Builder
 public class GetPostsResponse {
     Long postId;
+    Long userId;
     String userAvatar;
     String userFullName;
     String postTitle;

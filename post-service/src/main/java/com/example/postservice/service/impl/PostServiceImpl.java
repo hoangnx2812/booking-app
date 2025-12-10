@@ -25,8 +25,6 @@ public class PostServiceImpl implements PostService {
 //        int totalPages = (int) Math.ceil((double) totalElements / request.getSize());
         return PageResponse.<GetPostsResponse>builder()
                 .content(postRepositoryJdbc.getPostsByConditions(request, offset))
-//                .totalElements(totalElements)
-//                .totalPages(totalPages)
                 .currentPage(request.getPage())
                 .pageSize(request.getSize())
                 .build();

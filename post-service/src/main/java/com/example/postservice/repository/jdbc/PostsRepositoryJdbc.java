@@ -1,16 +1,20 @@
 package com.example.postservice.repository.jdbc;
 
+import com.example.commericalcommon.dto.BaseResponse;
 import com.example.commericalcommon.dto.object.HashtagsDTO;
 import com.example.commericalcommon.dto.object.ServicesDTO;
+import com.example.commericalcommon.dto.response.user.UserInfoResponse;
 import com.example.commericalcommon.utils.Constant;
 import com.example.commericalcommon.utils.DateTimeFormatter;
 import com.example.postservice.dto.request.GetPostRequest;
 import com.example.postservice.dto.response.GetPostsResponse;
 import com.example.postservice.repository.PostCommentRepository;
 import com.example.postservice.repository.PostLikeRepository;
+import com.example.postservice.repository.httpclient.AuthenticationClient;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -19,11 +23,13 @@ import org.springframework.util.StringUtils;
 
 import java.util.List;
 
+import static com.example.commericalcommon.utils.Constant.SUCCESS_CODE;
 import static com.example.commericalcommon.utils.Util.isNotNull;
 
 @Repository
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
+@Slf4j
 public class PostsRepositoryJdbc {
     NamedParameterJdbcTemplate namedParameterJdbcTemplate;
     ServicesRepositoryJdbc servicesRepositoryJdbc;
@@ -32,13 +38,14 @@ public class PostsRepositoryJdbc {
     PostLikeRepository postLikeRepository;
     AttachmentRepositoryJdbc attachmentRepositoryJdbc;
     DateTimeFormatter dateTimeFormatter;
+    AuthenticationClient authenticationClient;
 
     public List<GetPostsResponse> getPostsByConditions(GetPostRequest request, int offset) {
         StringBuilder sql = new StringBuilder("""
-                select u.full_name, u.avatar, p.id, p.title, services_ids, p.created_at
+                select p.id, p.title, p.services_ids, p.created_at, p.user_id
                 from posts p
-                         join user_info u on p.user_id = u.id
                 where 1 = 1
+                and p.is_active = true
                 """);
         MapSqlParameterSource sqlParameterSource = new MapSqlParameterSource();
         String keyword = request.getKeyword();
@@ -50,13 +57,13 @@ public class PostsRepositoryJdbc {
 
             if (CollectionUtils.isEmpty(hashtags)) {
                 sql.append("""
-                        and (p.title = :keyword or u.full_name = :keyword)
+                        and (p.title = :keyword)
                         """);
             } else {
                 sql.append("""
-                        and (p.title = :keyword or u.full_name = :keyword or p.id in (:post_ids))
+                        and (p.title = :keyword or p.id in (:post_ids))
                         """);
-                sqlParameterSource.addValue("keyword", keyword);
+                sqlParameterSource.addValue("post_ids", hashtags.stream().map(HashtagsDTO::getObjectId).toList());
             }
             sqlParameterSource.addValue("keyword", keyword);
         }
@@ -69,8 +76,8 @@ public class PostsRepositoryJdbc {
                     null);
             if (!CollectionUtils.isEmpty(services)) {
                 sql.append("""
-                    and services_ids in (:service_ids)
-                    """);
+                        and services_ids in (:service_ids)
+                        """);
                 sqlParameterSource.addValue("service_ids", services.stream().map(ServicesDTO::getId).toList());
             }
         }
@@ -81,10 +88,18 @@ public class PostsRepositoryJdbc {
         return namedParameterJdbcTemplate.query(sql.toString(), sqlParameterSource, (rs, rowNum) ->
         {
             Long id = rs.getLong("id");
+            long userId = rs.getLong("user_id");
+            BaseResponse<UserInfoResponse> userInfo = authenticationClient.getUserById(Long.toString(userId));
+            log.info("Response from authentication-service: {}", userInfo);
+            if (!SUCCESS_CODE.equals(userInfo.getResultCode())){
+                return null;
+            }
+            UserInfoResponse user = userInfo.getData();
             return GetPostsResponse.builder()
                     .postId(id)
-                    .userAvatar(rs.getString("avatar"))
-                    .userFullName(rs.getString("full_name"))
+                    .userId(userId)
+                    .userAvatar(user.getAvatar())
+                    .userFullName(user.getFullName())
                     .postTitle(rs.getString("title"))
                     .serviceName(servicesRepositoryJdbc.getServicesByConditions(null, null,
                                     null, null,
@@ -98,40 +113,5 @@ public class PostsRepositoryJdbc {
                             Constant.Attachment.ObjectType.POST))
                     .build();
         });
-    }
-
-    public Long totalElements(GetPostRequest request) {
-        StringBuilder sql = new StringBuilder("""
-                select count (*) as total
-                from posts p
-                         join authentication.public.user_info u on p.user_id = u.id
-                where 1 = 1
-                """);
-        MapSqlParameterSource sqlParameterSource = new MapSqlParameterSource();
-        String keyword = request.getKeyword();
-        if (StringUtils.hasText(keyword)) {
-            List<HashtagsDTO> hashtags = hashtagRepositoryJdbc.getHashtagsByConditions(
-                    null,
-                    Constant.Hashtag.ObjectType.POST,
-                    keyword);
-            sql.append("""
-                    and (p.title = :keyword or u.full_name = :keyword or p.id in (:post_ids))
-                    """);
-            sqlParameterSource.addValue("keyword", keyword);
-            sqlParameterSource.addValue("post_ids", hashtags.stream().map(HashtagsDTO::getObjectId).toList());
-        }
-        if (request.getPriceFrom() != null && request.getPriceTo() != null) {
-            List<ServicesDTO> services = servicesRepositoryJdbc.getServicesByConditions(
-                    null,
-                    request.getPriceFrom(),
-                    request.getPriceTo(),
-                    null,
-                    null);
-            sql.append("""
-                    and services_ids in (:service_ids)
-                    """);
-            sqlParameterSource.addValue("service_ids", services.stream().map(ServicesDTO::getId).toList());
-        }
-        return namedParameterJdbcTemplate.queryForObject(sql.toString(), sqlParameterSource, Long.class);
     }
 }

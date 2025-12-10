@@ -1,0 +1,112 @@
+{
+	"info": {
+		"_postman_id": "f54727f6-8da9-4446-be4b-2b779adcc9de",
+		"name": "bka",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "36968222",
+		"_collection_link": "https://adsafasdfsa.postman.co/workspace/dfdsfsdf-Workspace~d5dc01e9-df8e-4e1c-8bcc-964418efbdb3/collection/36968222-f54727f6-8da9-4446-be4b-2b779adcc9de?action=share&source=collection_link&creator=36968222"
+	},
+	"item": [
+		{
+			"name": "gateways",
+			"item": [
+				{
+					"name": "New Request",
+					"request": {
+						"method": "GET",
+						"header": []
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "authentication",
+			"item": [
+				{
+					"name": "login",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"deviceId\": \"0d5a4812-e9cb-4281-7421\",\n    \"deviceName\": \"google emu64xa\",\n    \"ip\": \"127.0.0.1\",\n    \"clientRequestId\": \"1748937164895.054\",\n    \"clientTime\": \"1748937164895.106\",\n    \"zonedClientTime\": \"1748937164895\",\n    \"appVersion\": \"1.0.0\",\n    \"data\": {\n        \"username\": \"admin\",\n        \"password\": \"6f2cb9dd8f4b65e24e1c3f3fa5bc57982349237f11abceacd45bbcb74d621c25\"\n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8888/authentication/auth/login",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8888",
+							"path": [
+								"authentication",
+								"auth",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "introspect",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"deviceId\": \"0d5a4812-e9cb-4281-7421\",\n    \"deviceName\": \"google emu64xa\",\n    \"ip\": \"127.0.0.1\",\n    \"clientRequestId\": \"1748937164895.054\",\n    \"clientTime\": \"1748937164895.106\",\n    \"zonedClientTime\": \"1748937164895\",\n    \"appVersion\": \"1.0.0\",\n    \"data\": {\n        \"token\": \"admin\"\n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8888/authentication/auth/introspect",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8888",
+							"path": [
+								"authentication",
+								"auth",
+								"introspect"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "post",
+			"item": [
+				{
+					"name": "getPostsByConditions",
+					"request": {
+						"method": "GET",
+						"header": []
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}

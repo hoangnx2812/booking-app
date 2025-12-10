@@ -26,8 +26,8 @@ public class GlobalExceptionHandler {
         log.error("Exception: ", exception);
         return ResponseEntity
                 .badRequest()
-                .body(setBaseResponse(ErrorCode.UNCATEGORIZED_EXCEPTION.getCode(),
-                        ErrorCode.UNCATEGORIZED_EXCEPTION.getMessage()));
+                .body(setBaseResponse(ErrorCode.UNCATEGORIZED.getCode(),
+                        ErrorCode.UNCATEGORIZED.getMessage()));
     }
 
     @ExceptionHandler(value = GlobalException.class)

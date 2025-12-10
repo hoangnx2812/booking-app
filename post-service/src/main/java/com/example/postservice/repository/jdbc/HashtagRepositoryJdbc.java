@@ -21,8 +21,8 @@ public class HashtagRepositoryJdbc {
 
     public List<HashtagsDTO> getHashtagsByConditions(Long objectId, String objectType, String name) {
         StringBuilder sql = new StringBuilder("""
-                select *
-                from hashtags
+                select hm.id, h.hashtag, hm.object_type, hm.object_id
+                from hashtags h join hashtags_map hm on hashtags.id = hm.hashtag_id
                 where 1 = 1
                 """);
         MapSqlParameterSource params = new MapSqlParameterSource();

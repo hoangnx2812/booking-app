@@ -82,7 +82,7 @@ public class AuthenticationFilter implements GlobalFilter, Ordered {
             body = objectMapper.writeValueAsString(apiResponse);
         } catch (JsonProcessingException e) {
             log.error("Cannot serialize response body: {}", getStackTrace(e));
-            throw new GlobalException(ErrorCode.UNCATEGORIZED_EXCEPTION);
+            throw new GlobalException(ErrorCode.UNCATEGORIZED);
         }
 
         response.setStatusCode(HttpStatus.UNAUTHORIZED);
