@@ -12,7 +12,6 @@ import com.example.postservice.dto.request.GetPostRequest;
 import com.example.postservice.dto.request.InsertPostRequest;
 import com.example.postservice.dto.response.GetPostsResponse;
 import com.example.postservice.entity.Post;
-import com.example.postservice.repository.PostServiceRepository;
 import com.example.postservice.repository.PostsRepository;
 import com.example.postservice.repository.httpclient.AuthenticationClient;
 import com.example.postservice.repository.jdbc.PostsRepositoryJdbc;
@@ -37,7 +36,6 @@ public class PostServiceImpl implements PostService {
     PostsRepositoryJdbc postRepositoryJdbc;
     AttachmentService attachmentService;
     HashtagService hashtagService;
-    PostServiceRepository postServiceRepository;
     PostsRepository postsRepository;
     AuthenticationClient authenticationClient;
 

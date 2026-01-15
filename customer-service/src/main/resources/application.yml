@@ -1,26 +1,20 @@
 spring:
   application:
-    name: authentication-service
+    name: customer-service
   profiles:
     active: local
 
-app:
-  admin:
-    account:
-      username: ${AUTHENTICATION_ADMIN_USERNAME:admin}
-      password: ${AUTHENTICATION_ADMIN_PASSWORD:Admin@12345}
-
 server:
-  port: 8080
+  port: 8082
   servlet:
-    context-path: /authentication
+    context-path: /customer
 
 logging:
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss.SSS} | %-5level | %X{traceId:-N/A} | %thread | %C{1}.%M:%L | %msg%n"
     file: "%d{yyyy-MM-dd HH:mm:ss.SSS} | %-5level | %X{traceId:-N/A} | %thread | %C{1}.%M:%L | %msg%n"
   file:
-    name: logs/authentication_service.log
+    name: logs/customer_service.log
   level:
     org:
       springframework:

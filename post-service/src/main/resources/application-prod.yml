@@ -1,14 +1,39 @@
 spring:
   datasource:
     driver-class-name: org.postgresql.Driver
-    url: jdbc:postgresql://${POST_DB_HOST:192.168.3.41}:${POST_DB_PORT:5432}/${POST_DB_NAME:post}
+    url: jdbc:postgresql://${POST_DB_HOST:localhost}:${POST_DB_PORT:5432}/${POST_DB_NAME:post}
     username: ${POST_DB_USER:root}
     password: ${POST_DB_PASSWORD:root}
+    hikari:
+      pool-name: "Post_Service_Hikari_Pool"
+      validation-timeout: 5000
+      connection-test-query: "SELECT 1"
+      keepalive-time: 300000
+      auto-commit: false
+
+      maximum-pool-size: 10
+      minimum-idle: 5
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+      leak-detection-threshold: 60000
   jpa:
     show-sql: true
     properties:
       hibernate:
         format_sql: true
+        jdbc:
+          batch_size: 20
+          fetch_size: 50
+        order_inserts: true
+        order_updates: true
+        connection:
+          provider_disables_autocommit: true
+        query:
+          in_clause_parameter_padding: true
+          plan_cache_max_size: 2048
+        default_schema: ${POST_DB_NAME:post}
+        open-in-view: false
   security:
     oauth2:
       resourceserver:

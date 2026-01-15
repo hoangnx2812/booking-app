@@ -1,11 +1,11 @@
 spring:
   datasource:
     driver-class-name: org.postgresql.Driver
-    url: jdbc:postgresql://${POST_DB_HOST:localhost}:${POST_DB_PORT:5432}/${POST_DB_NAME:authentication}
+    url: jdbc:postgresql://${POST_DB_HOST:localhost}:${POST_DB_PORT:5432}/${POST_DB_NAME:customer}
     username: ${POST_DB_USER:root}
     password: ${POST_DB_PASSWORD:root}
     hikari:
-      pool-name: "Authentication_Service_Hikari_Pool"
+      pool-name: "Customer_Service_Hikari_Pool"
       validation-timeout: 5000
       connection-test-query: "SELECT 1"
       keepalive-time: 300000

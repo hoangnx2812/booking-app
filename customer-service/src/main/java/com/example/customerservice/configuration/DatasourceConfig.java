@@ -1,4 +1,4 @@
-package com.example.postservice.configuration;
+package com.example.customerservice.configuration;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;

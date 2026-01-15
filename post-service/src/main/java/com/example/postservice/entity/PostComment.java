@@ -37,14 +37,8 @@ public class PostComment {
     @Column(name = "content", length = Integer.MAX_VALUE)
     private String content;
 
-    @Column(name = "medias_ids")
-    private List<Long> mediasIds;
-
     @Column(name = "parent_id")
     private Long parentId;
-
-    @Column(name = "user_ids")
-    private List<Long> userIds;
 
     @PrePersist
     protected void onCreate() {
