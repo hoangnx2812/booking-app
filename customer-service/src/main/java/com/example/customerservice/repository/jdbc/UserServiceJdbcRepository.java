@@ -9,6 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 import java.util.List;
@@ -51,7 +52,10 @@ public class UserServiceJdbcRepository {
             sql.append(" and usm.object_id = :objectId and usm.object_type = :objectType ");
             parameterSource.addValue("objectId", request.getObjectId());
             parameterSource.addValue("objectType", request.getObjectType());
-
+        } else if (!CollectionUtils.isEmpty(request.getObjectIds()) && StringUtils.hasText(request.getObjectType())) {
+            sql.append(" and usm.object_id in (:objectIds) and usm.object_type = :objectType ");
+            parameterSource.addValue("objectIds", request.getObjectIds());
+            parameterSource.addValue("objectType", request.getObjectType());
         }
 
         sql.append(" order by usm.created_at desc ");

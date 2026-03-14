@@ -12,9 +12,12 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
+import org.springframework.util.CollectionUtils;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 @Repository
 @RequiredArgsConstructor
@@ -52,6 +55,44 @@ public class AttachmentRepositoryJdbc {
                         .size(rs.getString("size"))
                         .type(rs.getString("type"))
                         .build());
+    }
+
+    public Map<Long, List<AttachmentResponse>> getAllAttachmentsBatch(List<Long> objectIds, String objectType) {
+        if (CollectionUtils.isEmpty(objectIds)) return Map.of();
+        String sql = """
+                select am.id,
+                       am.object_id,
+                       am.display_name,
+                       a.mime_type,
+                       a.size,
+                       a.thumbnail,
+                       a.file_path_sm,
+                       a.file_path_lg,
+                       a.file_path_original
+                from attachment_map am
+                         join attachment a on am.attachment_id = a.id
+                where am.object_id in (:object_ids)
+                  and am.object_type = :object_type
+                """;
+        MapSqlParameterSource params = new MapSqlParameterSource()
+                .addValue("object_ids", objectIds)
+                .addValue("object_type", objectType);
+        return namedParameterJdbcTemplate.query(sql, params, (rs, rowNum) ->
+                        Map.entry(rs.getLong("object_id"),
+                                AttachmentResponse.builder()
+                                        .id(rs.getLong("id"))
+                                        .name(rs.getString("display_name"))
+                                        .thumbnail(rs.getString("thumbnail"))
+                                        .pathSmall(rs.getString("file_path_sm"))
+                                        .pathLarge(rs.getString("file_path_lg"))
+                                        .pathOriginal(rs.getString("file_path_original"))
+                                        .size(rs.getString("size"))
+                                        .type(rs.getString("mime_type"))
+                                        .build()))
+                .stream()
+                .collect(Collectors.groupingBy(
+                        Map.Entry::getKey,
+                        Collectors.mapping(Map.Entry::getValue, Collectors.toList())));
     }
 
     public List<AttachmentDTO> checkSumExists(List<String> checkSum) {

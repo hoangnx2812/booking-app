@@ -80,9 +80,11 @@ Mỗi service:
 - Client ID: `bka_app`
 
 ## Database per Service
-- `authen-service`: `user_auth`, `user_info`, `role`, `permission`, `device`, `area`
+- `authen-service`: `user_auth`, `user_info`, `role`, `permission`, `user_roles`, `role_permissions`, `devices`, `device_auth`, `user_device`, `area`
 - `customer-service`: `user_services`, `user_services_map`
-- `post-service`: `posts`, `post_likes`, `post_comments`, `post_reports`, `attachment`, `hashtags`, `plans`
+- `post-service`: `posts`, `post_likes`, `post_comments`, `post_reports`, `post_views`, `post_status_log`, `post_block`, `attachment`, `attachment_map`, `hashtags`, `hashtag_map`, `plans`
+
+→ Chi tiết schema + phân tích design: [.claude/database.md](./database.md)
 
 ## Feign Client Config (application.yml)
 ```yaml

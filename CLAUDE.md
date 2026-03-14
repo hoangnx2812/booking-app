@@ -8,6 +8,8 @@
 - [Conventions & Patterns](./.claude/conventions.md)
 - [Từng Service chi tiết](./.claude/services.md)
 - [Workflow & Deploy](./.claude/workflow.md)
+- [Database Schema & Design](./.claude/database.md)
+- [Frontend Tech Stack](./.claude/frontend-techstack.md)
 
 ---
 
@@ -46,3 +48,13 @@
 - Có thể dùng **WebClient** (reactive) nếu endpoint xử lý nhiều concurrent request
 - Không mix WebFlux dispatcher với WebMVC trong cùng 1 app
 - Internal API prefix: `/internal/**` (không đi qua api-gateway auth filter)
+
+### 7. Frontend (commerical-web)
+- **Stack**: React 19 + TypeScript + Vite + Mantine 8 + React Router 7 + TanStack Query 5 + Axios
+- **UI**: Mantine 8 làm component library chính, customize qua Theme Override + Styles API + CSS Modules
+- **Data fetching**: TanStack Query cho server state, Axios làm HTTP client
+- **Routing**: React Router 7 với lazy loading
+- **API base URL**: `http://localhost:8888` (qua api-gateway)
+- **Auth**: JWT token lưu localStorage, gửi qua Authorization Bearer header
+- **Request/Response format**: Tuân thủ `BaseRequest<T>` / `BaseResponse<T>` wrapper như backend
+- Chi tiết tech stack xem [frontend-techstack.md](./.claude/frontend-techstack.md)

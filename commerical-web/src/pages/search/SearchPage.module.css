@@ -1,0 +1,176 @@
+/* ===== SEARCH / EXPLORE ===== */
+.container {
+  max-width: 935px;
+  margin: 0 auto;
+  padding: 0;
+}
+
+/* Search bar */
+.searchBar {
+  padding: 16px 16px 12px;
+  position: sticky;
+  top: 0;
+  background: #000;
+  z-index: 10;
+}
+
+.searchInputWrapper {
+  position: relative;
+}
+
+.searchIcon {
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #a8a8a8;
+  display: flex;
+  align-items: center;
+  pointer-events: none;
+}
+
+.searchInput {
+  width: 100%;
+  height: 40px;
+  padding: 0 16px 0 44px;
+  border-radius: 8px;
+  border: none;
+  background: #262626;
+  font-size: 16px;
+  color: #f5f5f5;
+  outline: none;
+  font-family: inherit;
+}
+
+.searchInput::placeholder {
+  color: #a8a8a8;
+}
+
+.searchInput:focus {
+  background: #363636;
+}
+
+/* Category chips */
+.chips {
+  display: flex;
+  gap: 8px;
+  padding: 0 16px 12px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.chips::-webkit-scrollbar {
+  display: none;
+}
+
+.chip {
+  padding: 7px 16px;
+  border-radius: 8px;
+  background: #262626;
+  border: 1px solid #363636;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  color: #f5f5f5;
+  white-space: nowrap;
+  transition: all 0.15s;
+  font-family: inherit;
+}
+
+.chip:hover {
+  background: #363636;
+}
+
+.chipActive {
+  composes: chip;
+  background: #f5f5f5;
+  color: #000;
+  border-color: #f5f5f5;
+}
+
+.chipActive:hover {
+  background: #dbdbdb;
+}
+
+/* ===== Explore Grid ===== */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 4px;
+}
+
+/* Pattern: every 18 items = 6 rows
+   Row set 1 (items 0-5): [small, small, LARGE(2x2)], [small, small, ...]
+   Row set 2 (items 6-11): same but LARGE on left
+   Repeat */
+
+.gridItem {
+  position: relative;
+  aspect-ratio: 1;
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.gridItemLarge {
+  composes: gridItem;
+  grid-row: span 2;
+  grid-column: span 1;
+}
+
+.gridItemContent {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255, 255, 255, 0.08);
+}
+
+/* Hover overlay */
+.gridOverlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  transition: background 0.15s;
+  opacity: 0;
+}
+
+.gridItem:hover .gridOverlay {
+  background: rgba(0, 0, 0, 0.3);
+  opacity: 1;
+}
+
+.gridStat {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: #fff;
+  font-weight: 700;
+  font-size: 14px;
+}
+
+/* Reel indicator */
+.reelIndicator {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  color: #fff;
+}
+
+/* Multi-post indicator */
+.multiIndicator {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  color: #fff;
+}
+
+@media (max-width: 735px) {
+  .grid {
+    gap: 2px;
+  }
+}
